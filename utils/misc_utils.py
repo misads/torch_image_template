@@ -4,7 +4,7 @@ Misc system & image process utils
 
 Author: xuhaoyu@tju.edu.cn
 
-update 11.26
+update 12.7
 
 Usage:
     `import misc_utils as utils`
@@ -17,12 +17,10 @@ import random
 import sys
 import time
 
-import cv2
 from PIL import Image
 from PIL import ImageFilter
 import numpy as np
-import tensorflow as tf
-from tensorflow.python import pywrap_tensorflow
+import logging
 
 
 #############################
@@ -32,7 +30,7 @@ from tensorflow.python import pywrap_tensorflow
 
 def p(v):
     """
-        recursively print
+        Recursively print list, tuple or dict items
         :param v:
         :return:
     """
@@ -48,6 +46,9 @@ def p(v):
 
 def color_print(text='', color=0):
     """
+        Example:
+            color_print('yellow', 3)
+
         :param text:
         :param color:
             0       black
@@ -68,7 +69,7 @@ def color_print(text='', color=0):
 
 def print_args(args):
     """
-        example
+        Example
             parser = argparse.ArgumentParser()
             args = parser.parse_args()
             print_args(args)
@@ -78,6 +79,42 @@ def print_args(args):
     """
     for k, v in args._get_kwargs():
         print('\033[1;32m', k, "\033[0m=\033[1;33m", v, '\033[0m')
+
+
+def get_logger(f='log.txt', mode='w', level='debug'):
+    """
+        Example:
+            logger = get_logger(level='debug')
+            logger.info("test")
+
+        :param f: log file
+        :param mode: 'w' or 'a'
+        :param level: 'debug' or 'info'
+        :return:
+    """
+    logger = logging.getLogger('bdcn')
+    if level.lower() == 'debug':
+        logger.setLevel(logging.DEBUG)
+        formatter = logging.Formatter(
+            "[%(levelname)s] %(asctime)s %(pathname)s, line %(lineno)d, in %(funcName)s(): '%(message)s'",
+            datefmt='%Y-%m-%d %H:%M:%S')
+    elif level.lower() == 'info':
+        logger.setLevel(logging.INFO)
+        formatter = logging.Formatter(
+            "[%(levelname)s] %(asctime)s %(message)s",
+            datefmt='%Y-%m-%d %H:%M:%S')
+
+    fh = logging.FileHandler(f, mode=mode)
+    fh.setLevel(logging.DEBUG)
+    fh.setFormatter(formatter)
+
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    ch.setFormatter(formatter)
+
+    logger.addHandler(ch)
+    logger.addHandler(fh)
+    return logger
 
 
 def safe_key(dic, key, default=None):
@@ -106,7 +143,7 @@ def try_make_dir(folder):
 
 def get_file_name(path):
     """
-        example:
+        Example:
             get_file_name('train/0001.jpg')
             returns 0001
 
@@ -119,14 +156,14 @@ def get_file_name(path):
 
 def get_file_paths_by_pattern(folder, pattern='*'):
     """
-        examples: get all *.png files in folder
+        Examples: get all *.png files in folder
             get_file_paths_by_pattern(folder, '*.png')
         get all files with '_rotate' in name
             get_file_paths_by_pattern(folder, '*rotate*')
 
         :param folder:
         :param pattern:
-    :return:
+        :return: a list of matching paths
     """
     paths = glob.glob(os.path.join(folder, pattern))
     return paths
@@ -134,7 +171,7 @@ def get_file_paths_by_pattern(folder, pattern='*'):
 
 def format_time(seconds):
     """
-        examples:
+        Examples:
             format_time(10) -> 10s
             format_time(100) -> 1m
             format_time(10000) -> 2h 47m
@@ -171,6 +208,11 @@ begin_time = last_time
 
 def progress_bar(current, total, pre_msg=None, msg=None):
     """
+        Training...  Step: [=======>... 26/100 ...........] ETA: 0s | loss:0.45
+
+        Example:
+            for i in range(100):
+                progress_bar(i, 100, 'Training...', 'loss:0.45')
 
         :param current: from 0 to total-1
         :param total:
@@ -244,14 +286,14 @@ def progress_bar(current, total, pre_msg=None, msg=None):
 #     plt.show()
 
 
-def hwc_to_whc(img):
+def chw_to_hwc(img):
     """
-        change [height][width][channel] to [width][height][channel]
+        change [channel][height][width] to [height][width][channel]
         :param img:
         :return:
     """
 
-    img = np.transpose(img, [1, 0, 2])
+    img = np.transpose(img, [1, 2, 0])
     return img
 
 

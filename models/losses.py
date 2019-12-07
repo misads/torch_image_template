@@ -1,6 +1,9 @@
 import torch
 import torch.nn as nn
 
+L1_loss = nn.L1Loss()
+L2_loss = nn.MSELoss()
+
 
 class VGGLoss(nn.Module):
     def __init__(self, gpu_ids):
