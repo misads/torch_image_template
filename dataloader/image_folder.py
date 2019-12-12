@@ -118,7 +118,7 @@ class ImageFolder(data.Dataset):
 #     return loader
 
 def get_data_loader_folder(input_folder, batch_size, train, new_size=None,
-                           height=256, width=256, num_workers=4, crop=True, normalization=False):
+                           height=256, width=256, num_workers=4, crop=True, normalization=False, return_paths=False):
     transform_list = [transforms.ToTensor()]
 
     transform_list = transform_list + [transforms.Normalize((0.5, 0.5, 0.5),
@@ -127,7 +127,7 @@ def get_data_loader_folder(input_folder, batch_size, train, new_size=None,
     transform_list = [transforms.Resize(new_size)] + transform_list if new_size is not None else transform_list
     transform_list = [transforms.RandomHorizontalFlip()] + transform_list if train else transform_list
     transform = transforms.Compose(transform_list)
-    dataset = ImageFolder(input_folder, transform=transform)
+    dataset = ImageFolder(input_folder, transform=transform, return_paths=return_paths)
     loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=train, drop_last=True, num_workers=num_workers)
     return loader
 

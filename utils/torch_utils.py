@@ -167,7 +167,7 @@ def create_summary_writer(log_dir):
     log_dir = os.path.join(log_dir, datetime.now().strftime('%m-%d_%H-%M-%S'))
     if not os.path.exists(log_dir):
         os.mkdir(log_dir)
-    writer = SummaryWriter(log_dir)
+    writer = SummaryWriter(log_dir, max_queue=3, flush_secs=10)
 
     return writer
 

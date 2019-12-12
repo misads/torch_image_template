@@ -1,7 +1,7 @@
 import os.path
 from os.path import join
-from data.image_folder import make_dataset
-from data.transforms import Sobel, to_norm_tensor, to_tensor, ReflectionSythesis_1, ReflectionSythesis_2, \
+from dataloader.image_folder import make_dataset
+from dataloader.transforms import Sobel, to_norm_tensor, to_tensor, ReflectionSythesis_1, ReflectionSythesis_2, \
     paired_data_transforms
 from PIL import Image
 import random

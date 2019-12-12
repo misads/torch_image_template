@@ -108,3 +108,5 @@ test*.py
 /c/
 datasets/
 datasets
+checkpoints/
+logs/
