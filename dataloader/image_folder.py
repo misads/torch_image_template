@@ -14,7 +14,6 @@ from PIL import Image
 import os
 import os.path
 
-from pietorch.transforms import __crop, __flip
 from utils.torch_utils import create_summary_writer, write_image
 
 IMG_EXTENSIONS = [

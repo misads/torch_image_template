@@ -11,15 +11,78 @@ Usage:
     `func_name()`  # to call functions in this file
 """
 from datetime import datetime
+import math
 import os
 
 import torch
+import torch.nn as nn
 from tensorboardX import SummaryWriter
+
+
+##############################
+#    Functional utils
+##############################
+def clamp(x, min=0.01, max=0.99):
+    """
+        value > max will be set to max
+        value < min will be set to min
+        :param x: input tensor
+        :param min:
+        :param max:
+        :return:
+    """
+    return torch.clamp(x, min, max)
+
+
+def repeat(x: torch.Tensor, *sizes):
+    """
+        Example:
+            >>> t = repeat(t, 1, 3, 1, 1)
+            # t = t.repeat(1, 3, 1, 1) or t = torch.cat([t, t, t], dim=1)
+
+        :param x:
+        :param sizes:
+        :return:
+    """
+
+    return x.repeat(*sizes)
+
+
+##############################
+#    Network utils
+##############################
+def print_network(net: nn.Module):
+    num_params = 0
+    for param in net.parameters():
+        num_params += param.numel()
+    print(net)
+    print('Total number of parameters: %d' % num_params)
+    print('The size of receptive field: %d' % receptive_field(net))
+
+
+def receptive_field(net):
+    def _f(output_size, ksize, stride, dilation):
+        return (output_size - 1) * stride + ksize * dilation - dilation + 1
+
+    stats = []
+    for m in net.modules():
+        if isinstance(m, torch.nn.Conv2d):
+            stats.append((m.kernel_size, m.stride, m.dilation))
+
+    rsize = 1
+    for (ksize, stride, dilation) in reversed(stats):
+        if type(ksize) == tuple: ksize = ksize[0]
+        if type(stride) == tuple: stride = stride[0]
+        if type(dilation) == tuple: dilation = dilation[0]
+        rsize = _f(rsize, ksize, stride, dilation)
+    return rsize
 
 
 ##############################
 #    Abstract Meters class
 ##############################
+
+
 class Meters(object):
     def __init__(self):
         pass
@@ -114,6 +177,10 @@ class ExponentialMovingAverage(Meters):
     def keys(self):
         return self.dic.keys()
 
+##############################
+#    Checkpoint helper
+##############################
+
 
 def load_ckpt(model, ckpt_path):
     """
@@ -147,6 +214,83 @@ def save_ckpt(model, ckpt_path):
 
     torch.save(model.state_dict(), ckpt_path)
 
+
+##############################
+#    LR_Scheduler
+##############################
+
+
+class LR_Scheduler(object):
+    """Learning Rate Scheduler
+
+    Example:
+        >>> scheduler = LR_Scheduler('cosine', opt.lr, opt.epochs, len(dataloader), warmup_epochs=20)
+        >>> for i, data in enumerate(dataloader)
+        >>>     scheduler(self.g_optimizer, i, epoch)
+
+    Step mode: ``lr = baselr * 0.1 ^ {floor(epoch-1 / lr_step)}``  每到达lr_step, lr就乘以0.1
+
+    Cosine mode: ``lr = baselr * 0.5 * (1 + cos(iter/maxiter))``
+
+    Poly mode: ``lr = baselr * (1 - iter/maxiter) ^ 0.9``
+
+        iters_per_epoch: number of iterations per epoch
+    """
+    def __init__(self, mode, base_lr, num_epochs, iters_per_epoch=0,
+                 lr_step=0, warmup_epochs=0, logger=None):
+        """
+            :param mode: `step` `cos` or `poly`
+            :param base_lr:
+            :param num_epochs:
+            :param iters_per_epoch:
+            :param lr_step: lr step to change lr/ for `step` mode
+            :param warmup_epochs:
+            :param logger:
+        """
+        self.mode = mode
+        print('Using {} LR Scheduler!'.format(self.mode))
+        self.lr = base_lr
+        if mode == 'step':
+            assert lr_step
+        self.lr_step = lr_step
+        self.iters_per_epoch = iters_per_epoch
+        self.N = num_epochs * iters_per_epoch
+        self.epoch = -1
+        self.warmup_iters = warmup_epochs * iters_per_epoch
+        self.logger = logger
+        if logger:
+            self.logger.info('Using {} LR Scheduler!'.format(self.mode))
+
+    def __call__(self, optimizer, i, epoch):
+        T = epoch * self.iters_per_epoch + i
+        if self.mode == 'cos':
+            lr = 0.5 * self.lr * (1 + math.cos(1.0 * T / self.N * math.pi))
+        elif self.mode == 'poly':
+            lr = self.lr * pow((1 - 1.0 * T / self.N), 0.9)
+        elif self.mode == 'step':
+            lr = self.lr * (0.1 ** (epoch // self.lr_step))
+        else:
+            raise NotImplemented
+        # warm up lr schedule
+        if self.warmup_iters > 0 and T < self.warmup_iters:
+            lr = lr * 1.0 * T / self.warmup_iters
+        if epoch > self.epoch:
+            if self.logger:
+                self.logger.info('\n=>Epoches %i, learning rate = %.4f' % (epoch, lr))
+            else:
+                print('\nepoch: %d lr: %.6f' % (epoch, lr))
+            self.epoch = epoch
+        assert lr >= 0
+        self._adjust_learning_rate(optimizer, lr)
+
+    def _adjust_learning_rate(self, optimizer, lr):
+        if len(optimizer.param_groups) == 1:
+            optimizer.param_groups[0]['lr'] = lr
+        else:
+            # enlarge the lr at the head
+            optimizer.param_groups[0]['lr'] = lr
+            for i in range(1, len(optimizer.param_groups)):
+                optimizer.param_groups[i]['lr'] = lr * 10
 
 """
     TensorBoard

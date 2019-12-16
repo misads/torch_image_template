@@ -5,21 +5,23 @@ import torch
 import os
 
 from torch import optim
-from torch.autograd import Variable
 
-from network.DuRN_Pure_Conv import cleaner
+from network.DuRN_Pure_Conv_3_multi_kernal import cleaner
+# from network.pyramid_ppp import Pyramid_Net
 from network.Ms_Discriminator import MsImageDis
 from network.base_model import BaseModel
 from network.metrics import ssim, L1_loss
-from utils.torch_utils import ExponentialMovingAverage
+from utils.torch_utils import ExponentialMovingAverage, print_network
 
 
 class Model(BaseModel):
     def __init__(self, opt):
         super(Model, self).__init__()
 
-        self.cleaner = cleaner().cuda()
-        print(self.cleaner)
+        # self.cleaner = Pyramid_Net(3, 256).cuda(device=opt.device)
+        self.cleaner = cleaner().cuda(device=opt.device)
+
+        print_network(self.cleaner)
 
         params = {
             'dim': 64,
@@ -30,9 +32,10 @@ class Model(BaseModel):
             'num_scales': 3,  # number of scales
             'pad_type': 'reflect'
         }
-        self.discriminitor = MsImageDis(input_dim=3, params=params).cuda()
 
-        print(self.discriminitor)
+        # self.discriminitor = MsImageDis(input_dim=3, params=params).cuda(device=opt.device)
+        #
+        # print(self.discriminitor)
 
         self.g_optimizer = optim.Adam(self.cleaner.parameters(), lr=opt.lr)
         # self.d_optimizer = optim.Adam(cleaner.parameters(), lr=opt.lr)
@@ -45,7 +48,7 @@ class Model(BaseModel):
             #     self.load_network(self.discriminitor, 'D', opt.which_epoch, pretrained_path)
 
         self.avg_meters = ExponentialMovingAverage(0.95)
-        self.save_dir = os.path.join(opt.checkpoints_dir, opt.tag)
+        self.save_dir = os.path.join(opt.checkpoint_dir, opt.tag)
 
     def update_G(self, x, y):
         self.g_optimizer.zero_grad()
@@ -102,14 +105,14 @@ class Model(BaseModel):
 
     def save(self, which_epoch):
         self.save_network(self.cleaner, 'G', which_epoch)
-        self.save_network(self.discriminitor, 'D', which_epoch)
+        # self.save_network(self.discriminitor, 'D', which_epoch)
 
     def update_learning_rate(self):
         lrd = self.opt.lr / self.opt.niter_decay
         lr = self.old_lr - lrd
-        for param_group in self.optimizer_D.param_groups:
+        for param_group in self.d_optimizer.param_groups:
             param_group['lr'] = lr
-        for param_group in self.optimizer_G.param_groups:
+        for param_group in self.g_optimizer.param_groups:
             param_group['lr'] = lr
         if self.opt.verbose:
             print('update learning rate: %f -> %f' % (self.old_lr, lr))

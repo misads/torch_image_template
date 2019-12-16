@@ -104,9 +104,13 @@ venv.bak/
 .mypy_cache/
 .DS_Store
 .idea/
-test*.py
+test1.py
+test2.py
+test3.py
+test4.py
 /c/
 datasets/
 datasets
 checkpoints/
 logs/
+network/DuRN_Pure_Conv_3_*.py
