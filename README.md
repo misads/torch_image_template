@@ -5,42 +5,54 @@ A template for pytorch image handling project.
 
 ```yaml
 .
-├── checkpoint
-│   └── model_0001.ckpt
-├── config.py
-├── data_loader
-│   ├── datadb.py
-│   ├── data_loader.py
-│   ├── imdb.py
-│   └── pipeline.py  # image loading pipeline
-├── main.py
-├── models
-│   ├── base_model.py
-│   ├── layers.py  # layers (e.g. conv, devonv, batchnorm)
-│   ├── losses.py  # common losses
-│   ├── module.py  # network modules
-│   ├── mynet.py
-│   └── process.py  # image (pre)process
+├── checkpoints
+│   └── tag_1  # Saved checkpoints
+├── logs
+│   └── tag_1  # Log and tensorboard files
 ├── README.md
+├── backbone
+│   └── linknet.py
+├── dataloader
+│   ├── dual_residual_dataset.py
+│   ├── image_folder.py  # Folder image dataloader
+│   ├── reside_dataset.py
+│   └── transforms.py
+├── eval.py
+├── loss
+│   └── content_loss.py
+├── network
+│   ├── DuRN_Pure_Conv.py
+│   ├── Model.py
+│   ├── Ms_Discriminator.py
+│   ├── base_model.py
+│   ├── metrics.py
+│   └── norm.py
+├── options
+│   ├── __init__.py
+│   └── options.py  # Args
 ├── scripts
-│   └── test_batch.py
+│   ├── test_scipt.py
+│   └── train_script.py
+├── test.py
+├── train.py
 └── utils
-    └── misc_utils.py
+    ├── misc_utils.py
+    └── torch_utils.py
 
 ```
 
 ### Train your own network
-```shell script
-    python3 main.py --train --input_dir train/ --output_dir checkpoint/ --epochs 100 --which_direction BtoA [--resume]
+```bash
+    python3 train.py --tag tag_1 --batch_size 16 --epochs 100 [--load <pretrained models folder> --which-epoch 500] --gpu_ids 0
 ```
 
 ### Test the model
 ```shell script
-    python3 main.py --test --input_dir val/ --output_dir test_results/ --checkpoint checkpoint/ 
+    python3 test.py --dataset voc --load <pretrained models folder> --which-epoch 500
 ```
 
 ### Visulization
 ```shell script
-   visulization code here
+   tensorboard --logdir logs/tag_1
 ```
 
