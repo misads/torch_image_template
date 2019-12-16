@@ -30,7 +30,7 @@ class Decoder(nn.Module):
 
 
 class LinkNet50(nn.Module):
-    def __init__(self, n_classes=3, pad=(0, 0, 0, 0)):
+    def __init__(self, out_channel=3, pad=(0, 0, 0, 0)):
         """
         Model initialization
         :param x_n: number of input neurons
@@ -64,7 +64,7 @@ class LinkNet50(nn.Module):
         self.conv2 = nn.Sequential(nn.Conv2d(32, 32, 3, 1, 1),
                                    nn.BatchNorm2d(32),
                                    nn.ReLU(inplace=True), )
-        self.tp_conv2 = nn.ConvTranspose2d(32, n_classes, 2, 2, 0)
+        self.tp_conv2 = nn.ConvTranspose2d(32, out_channel, 2, 2, 0)
         self.lsm = nn.ReLU()  # nn.LogSoftmax(dim=1)
 
     def forward(self, x):
@@ -100,7 +100,7 @@ class LinkNet(nn.Module):
     Generate Model Architecture
     """
 
-    def __init__(self, n_classes=3, pad=(0, 0, 0, 0)):
+    def __init__(self, out_channel=3, pad=(0, 0, 0, 0)):
         """
         Model initialization
         :param x_n: number of input neurons
@@ -134,7 +134,7 @@ class LinkNet(nn.Module):
         self.conv2 = nn.Sequential(nn.Conv2d(32, 32, 3, 1, 1),
                                    nn.BatchNorm2d(32),
                                    nn.ReLU(inplace=True), )
-        self.tp_conv2 = nn.ConvTranspose2d(32, n_classes, 2, 2, 0)
+        self.tp_conv2 = nn.ConvTranspose2d(32, out_channel, 2, 2, 0)
         self.lsm = nn.ReLU()
 
     def forward(self, x):
