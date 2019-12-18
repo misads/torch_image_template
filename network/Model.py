@@ -6,7 +6,7 @@ import os
 
 from torch import optim
 
-from network.DuRN_Pure_Conv_3_multi_kernal import cleaner
+from network.DuRN_Pure_Conv_3_transmap import cleaner
 # from network.pyramid_ppp import Pyramid_Net
 from network.Ms_Discriminator import MsImageDis
 from network.base_model import BaseModel

@@ -14,6 +14,7 @@ from PIL import Image
 import os
 import os.path
 
+from dataloader.transforms import __crop, __flip
 from utils.torch_utils import create_summary_writer, write_image
 
 IMG_EXTENSIONS = [
@@ -144,7 +145,7 @@ def get_params():
     x = random.random()
     y = random.random()
 
-    flip = random.random() > 0.5
+    flip = random.randint(0, 7)
     return {'crop_pos': (x, y), 'flip': flip}
 
 

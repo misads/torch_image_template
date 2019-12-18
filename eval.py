@@ -69,7 +69,7 @@ def evaluate(cleaner, dataloader, epochs, writer, data_name='RESIDE'):
                     hazy_vi = hazy[bi, vi]
                     hazy_vi = hazy_vi.unsqueeze(dim=0)
                     hazy_vi = Variable(hazy_vi, requires_grad=False).cuda(device=opt.device)
-                    res = cleaner(hazy_vi)
+                    res, A ,t = cleaner(hazy_vi)
                     res = res.data.cpu().numpy()[0]
                     res[res > 1] = 1
                     res[res < 0] = 0
@@ -107,7 +107,7 @@ def evaluate(cleaner, dataloader, epochs, writer, data_name='RESIDE'):
             hazy = data
             hazy = Variable(hazy, requires_grad=False).cuda(device=opt.device)
             utils.progress_bar(i, len(dataloader), 'Eva... ')
-            res = cleaner(hazy)
+            res, A, t = cleaner(hazy)
             res = res.data.cpu().numpy()[0]
             res[res > 1] = 1
             res[res < 0] = 0

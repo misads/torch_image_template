@@ -57,7 +57,9 @@ log_dir = os.path.join(opt.log_dir, opt.tag)
 utils.try_make_dir(log_dir)
 logger = utils.get_logger(f=os.path.join(log_dir, 'log.txt'), level='info')
 
+logger.info('==================Options==================')
 for k, v in opt._get_kwargs():
     logger.info(str(k) + '=' + str(v))
+logger.info('===========================================')
 
 # utils.print_args(opt)

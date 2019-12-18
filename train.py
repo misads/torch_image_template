@@ -9,11 +9,11 @@ from torchvision.transforms import transforms
 from dataloader import dual_residual_dataset
 from dataloader.image_folder import get_data_loader_folder
 from eval import evaluate
-from network.Model import Model
-from options import opt
-from options.options import logger
+from network.Model_Dual import Model
+from options import opt, logger
 from utils.torch_utils import create_summary_writer, write_image, write_meters_loss, LR_Scheduler
 import utils.misc_utils as utils
+import torch
 
 data_name = 'RESIDE'
 data_root = './datasets/' + data_name + '/ITS/'
@@ -92,14 +92,20 @@ for epoch in range(start_epoch, opt.epochs):
         label_var = Variable(label, requires_grad=False).cuda(device=opt.device)
 
         # Cleaning noisy images
-        cleaned = model.cleaner(img_var)
+        cleaned, A, t = model.cleaner(img_var)
+        Jt = torch.clamp(cleaned * t, min=.01, max=.99)
+        airlight = torch.clamp(A * (1-t), min=.01, max=.99)
 
         if epoch % opt.log_freq == opt.log_freq - 1 and iteration < 5:
-            write_image(writer, 'train/%d' % iteration, 'input', img.data[0], epoch)
+            write_image(writer, 'train/%d' % iteration, '0_input', img.data[0], epoch)
+            write_image(writer, 'train/%d' % iteration, '1_A', A.data[0], epoch)
+            write_image(writer, 'train/%d' % iteration, '2_t', t.data[0], epoch)
+            write_image(writer, 'train/%d' % iteration, '3_Jt', Jt.data[0], epoch)
+            write_image(writer, 'train/%d' % iteration, '4_airlit', airlight.data[0], epoch)
             cleaned[cleaned > 1] = 1
             cleaned[cleaned < 0] = 0
-            write_image(writer, 'train/%d' % iteration, 'output', cleaned.data[0], epoch)
-            write_image(writer, 'train/%d' % iteration, 'target', label_var.data[0], epoch)
+            write_image(writer, 'train/%d' % iteration, '5_output', cleaned.data[0], epoch)
+            write_image(writer, 'train/%d' % iteration, '6_target', label_var.data[0], epoch)
 
         # update
         model.update_G(cleaned, label_var)
@@ -123,7 +129,7 @@ for epoch in range(start_epoch, opt.epochs):
     if epoch % opt.eval_freq == (opt.eval_freq - 1):
         model.eval()
         evaluate(model.cleaner, val_dataloader, epoch + 1, writer)
-        evaluate(model.cleaner, real_dataloader, epoch + 1, writer, 'SINGLE')
+        # evaluate(model.cleaner, real_dataloader, epoch + 1, writer, 'SINGLE')
         model.train()
 
 
