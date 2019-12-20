@@ -56,9 +56,9 @@ class BaseModel(torch.nn.Module):
             save_dir = self.save_dir
         save_path = os.path.join(save_dir, save_filename)
         if not os.path.isfile(save_path):
-            print('%s not exists yet!' % save_path)
+            color_print("Exception: Checkpoint '%s' not found" % save_path, 1)
             if network_label == 'G':
-                raise ('Generator must exist!,[file not %s found]' % save_path)
+                raise Exception("Generator must exist!,file '%s' not found" % save_path)
         else:
             # network.load_state_dict(torch.load(save_path))
             try:

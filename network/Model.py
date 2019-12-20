@@ -50,11 +50,11 @@ class Model(BaseModel):
         self.avg_meters = ExponentialMovingAverage(0.95)
         self.save_dir = os.path.join(opt.checkpoint_dir, opt.tag)
 
-    def update_G(self, x, y):
-        self.g_optimizer.zero_grad()
+    def update_G(self, cleaned, y):
+
         # L1 & SSIM loss
         some_loss = 0
-        cleaned = self.cleaner(x)
+        # cleaned = self.cleaner(x)
         ssim_loss_r = -ssim(cleaned, y)
         ssim_loss = ssim_loss_r * 1.1
 
@@ -69,7 +69,7 @@ class Model(BaseModel):
         self.avg_meters.update({'ssim': -ssim_loss_r.item(), 'L1': l1_loss.item()})
 
         #loss_gen = loss + loss_gen_adv * 1.
-
+        self.g_optimizer.zero_grad()
         loss.backward()
         self.g_optimizer.step()
 

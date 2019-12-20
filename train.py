@@ -93,6 +93,8 @@ for epoch in range(start_epoch, opt.epochs):
 
         # Cleaning noisy images
         cleaned, A, t = model.cleaner(img_var)
+        model.update_G(cleaned, label_var)
+
         Jt = torch.clamp(cleaned * t, min=.01, max=.99)
         airlight = torch.clamp(A * (1-t), min=.01, max=.99)
 
@@ -108,7 +110,7 @@ for epoch in range(start_epoch, opt.epochs):
             write_image(writer, 'train/%d' % iteration, '6_target', label_var.data[0], epoch)
 
         # update
-        model.update_G(cleaned, label_var)
+
 
         pre_msg = 'Epoch:%d' % epoch
 
