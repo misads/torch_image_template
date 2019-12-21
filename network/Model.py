@@ -6,7 +6,8 @@ import os
 
 from torch import optim
 
-from network.DuRN_Pure_Conv_3_transmap import cleaner
+# from network.DuRN_Pure_Conv_3 import cleaner
+from backbone.unet import NestedUNet
 # from network.pyramid_ppp import Pyramid_Net
 from network.Ms_Discriminator import MsImageDis
 from network.base_model import BaseModel
@@ -19,7 +20,7 @@ class Model(BaseModel):
         super(Model, self).__init__()
 
         # self.cleaner = Pyramid_Net(3, 256).cuda(device=opt.device)
-        self.cleaner = cleaner().cuda(device=opt.device)
+        self.cleaner = NestedUNet().cuda(device=opt.device)
 
         print_network(self.cleaner)
 
@@ -50,11 +51,11 @@ class Model(BaseModel):
         self.avg_meters = ExponentialMovingAverage(0.95)
         self.save_dir = os.path.join(opt.checkpoint_dir, opt.tag)
 
-    def update_G(self, cleaned, y):
+    def update_G(self, x, y):
 
         # L1 & SSIM loss
         some_loss = 0
-        # cleaned = self.cleaner(x)
+        cleaned = self.cleaner(x)
         ssim_loss_r = -ssim(cleaned, y)
         ssim_loss = ssim_loss_r * 1.1
 
@@ -72,6 +73,8 @@ class Model(BaseModel):
         self.g_optimizer.zero_grad()
         loss.backward()
         self.g_optimizer.step()
+
+        return cleaned
 
     def update_D(self, x, y):
         self.d_optimizer.zero_grad()

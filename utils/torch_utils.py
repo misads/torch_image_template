@@ -48,6 +48,22 @@ def repeat(x: torch.Tensor, *sizes):
     return x.repeat(*sizes)
 
 
+def tensor2im(x: torch.Tensor, norm=False, dtype='float32'):
+    """
+
+
+        :param x: [n, c, h, w] float32 type
+        :param dtype:
+        :return:
+    """
+    if norm:
+        x = (x + 1) / 2
+    x[x > 1] = 1
+    x[x < 0] = 0
+    return x.detach().cpu().data[0]
+
+
+
 ##############################
 #    Network utils
 ##############################
