@@ -1,4 +1,4 @@
-from backbone.blocks import ResidualBlock, TransitionBlock
+from model_zoo.blocks import ResidualBlock, TransitionBlock
 import torch.nn as nn
 from torch.nn import functional as F
 import torch
