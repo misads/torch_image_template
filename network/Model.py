@@ -8,6 +8,7 @@ from torch import optim
 
 # from network.DuRN_Pure_Conv_3 import cleaner
 from backbone.unet import NestedUNet
+from backbone.pix2pix import GlobalGenerator
 # from network.pyramid_ppp import Pyramid_Net
 from network.Ms_Discriminator import MsImageDis
 from network.base_model import BaseModel
@@ -20,7 +21,7 @@ class Model(BaseModel):
         super(Model, self).__init__()
 
         # self.cleaner = Pyramid_Net(3, 256).cuda(device=opt.device)
-        self.cleaner = NestedUNet().cuda(device=opt.device)
+        self.cleaner = GlobalGenerator(n_downsampling=4).cuda(device=opt.device)
 
         print_network(self.cleaner)
 
