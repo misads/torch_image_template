@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 from torch.nn import functional as F
 
@@ -32,6 +33,27 @@ class CALayer(nn.Module):
         y = self.avg_pool(x)
         y = self.ca(y)
         return x * y
+
+
+class ConvLayer(torch.nn.Sequential):
+    """
+        conv=nn.Conv2d
+        norm=nn.BatchNorm2d
+        ConvLayer(conv, in_channels, n_feats, kernel_size, stride=1, norm=None, act=act)
+
+    """
+
+    def __init__(self, conv, in_channels, out_channels, kernel_size, stride, padding=None, dilation=1, norm=None,
+                 act=None):
+        super(ConvLayer, self).__init__()
+        # padding = padding or kernel_size // 2
+        padding = padding or dilation * (kernel_size - 1) // 2
+        self.add_module('conv2d', conv(in_channels, out_channels, kernel_size, stride, padding, dilation=dilation))
+        if norm is not None:
+            self.add_module('norm', norm(out_channels))
+            # self.add_module('norm', norm(out_channels, track_running_stats=True))
+        if act is not None:
+            self.add_module('act', act)
 
 
 class ResidualBlock(nn.Module):
