@@ -94,19 +94,17 @@ for epoch in range(start_epoch, opt.epochs):
 
         # Cleaning noisy images
         # cleaned, A, t = model.cleaner(img_var)
-        cleaned = model.update_G(img_var, label_var)
+        fine, coarse = model.update_G(img_var, label_var)
 
         # Jt = torch.clamp(cleaned * t, min=.01, max=.99)
         # airlight = torch.clamp(A * (1-t), min=.01, max=.99)
 
         if epoch % opt.log_freq == opt.log_freq - 1 and iteration < 5:
             write_image(writer, 'train/%d' % iteration, '0_input', tensor2im(img), epoch)
-            # write_image(writer, 'train/%d' % iteration, '1_A', A.data[0], epoch)
-            # write_image(writer, 'train/%d' % iteration, '2_t', t.data[0], epoch)
-            # write_image(writer, 'train/%d' % iteration, '3_Jt', Jt.data[0], epoch)
-            # write_image(writer, 'train/%d' % iteration, '4_airlit', airlight.data[0], epoch)
-            write_image(writer, 'train/%d' % iteration, '1_output', tensor2im(cleaned), epoch)
-            write_image(writer, 'train/%d' % iteration, '6_target', tensor2im(label_var), epoch)
+
+            write_image(writer, 'train/%d' % iteration, '1_fine', tensor2im(fine), epoch)
+            write_image(writer, 'train/%d' % iteration, '2_coarse', tensor2im(coarse), epoch)
+            write_image(writer, 'train/%d' % iteration, '9_target', tensor2im(label_var), epoch)
 
         # update
 

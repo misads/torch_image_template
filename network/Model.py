@@ -7,8 +7,7 @@ import os
 from torch import optim
 
 import network.DuRN_Pure_Conv_3 as pure
-import network.DuRN_Pure_Conv_3_coarse as coarse
-from model_zoo import FFA
+import model_zoo
 # from network.pyramid_ppp import Pyramid_Net
 from network.Ms_Discriminator import MsImageDis
 from network.base_model import BaseModel
@@ -19,7 +18,10 @@ from utils.torch_utils import ExponentialMovingAverage, print_network
 models = {
     'default': pure.cleaner(),
     'pure': pure.cleaner(),
-    'coarse': coarse.cleaner()
+    'coarse': None,
+    'FFA': model_zoo.FFA(),
+    'Nested': model_zoo.NestedUNet(),
+    'pix2pix': model_zoo.LocalEnhancer(),
 }
 
 
