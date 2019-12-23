@@ -9,9 +9,7 @@ from torchvision.transforms import transforms
 from dataloader import dual_residual_dataset
 from dataloader.image_folder import get_data_loader_folder
 from eval import evaluate
-import network.Model as model
-import network.Model_corse as coarse_model
-
+from network import models
 
 from options import opt, logger
 from utils.torch_utils import create_summary_writer, write_image, write_meters_loss, LR_Scheduler, tensor2im
@@ -61,13 +59,7 @@ val_dataloader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_worker
 """
 real_dataloader = get_data_loader_folder(realroot, 1, train=False, num_workers=1, crop=False)
 
-Models = {
-    'default': model.Model,
-    'coarse': coarse_model.Model,
-    
-}
-
-Model = Models[opt.model]
+Model = models[opt.model]
 model = Model(opt)
 
 # if len(opt.gpu_ids):
