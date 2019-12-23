@@ -22,9 +22,11 @@ def parse_args():
     parser.add_argument('--log_dir', type=str, default='./logs', help='logs are saved here')
     parser.add_argument('--result_dir', type=str, default='./results', help='results are saved here')
 
-    parser.add_argument('--model', type=str, default='DuRN_US', help='which model to use')
+    parser.add_argument('--model', type=str, default='default', help='which model to use')
     parser.add_argument('--norm', type=str, default='instance',
                         help='[instance] normalization or [batch] normalization')
+    parser.add_argument('--init', choices=[None, 'normal', 'xavier', 'kaiming', 'orthogonal'], default=None,
+                        help='weights init')
 
     # input/output sizes
     parser.add_argument('--batch_size', type=int, default=1, help='input batch size')

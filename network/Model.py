@@ -6,13 +6,21 @@ import os
 
 from torch import optim
 
-# from network.DuRN_Pure_Conv_3 import cleaner
+import network.DuRN_Pure_Conv_3 as pure
+import network.DuRN_Pure_Conv_3_coarse as coarse
 from model_zoo import FFA
 # from network.pyramid_ppp import Pyramid_Net
 from network.Ms_Discriminator import MsImageDis
 from network.base_model import BaseModel
 from network.metrics import ssim, L1_loss
+from network.weights_init import init_weights
 from utils.torch_utils import ExponentialMovingAverage, print_network
+
+models = {
+    'default': pure.cleaner(),
+    'pure': pure.cleaner(),
+    'coarse': coarse.cleaner()
+}
 
 
 class Model(BaseModel):
@@ -20,7 +28,9 @@ class Model(BaseModel):
         super(Model, self).__init__()
 
         # self.cleaner = Pyramid_Net(3, 256).cuda(device=opt.device)
-        self.cleaner = FFA().cuda(device=opt.device)
+        self.cleaner = models[opt.model].cuda(device=opt.device)
+        if opt.init:
+            init_weights(self.cleaner, opt.init)
 
         print_network(self.cleaner)
 
