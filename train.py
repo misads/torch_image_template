@@ -1,3 +1,47 @@
+"""
+    PyTorch Image Template
+
+    Author: xuhaoyu@tju.edu.cn
+
+    File Structure:
+        .
+        ├── train.py                :Train and evaluation loop, errors and outputs visualization (Powered by TensorBoard)
+        ├── test.py                 :Test
+        │
+        ├── network
+        │     ├── Model.py          :Define models, losses and parameter updating
+        │     └── *.py              :Define networks
+        ├── options
+        │     └── options.py        :Define options
+        │
+        ├── dataloader/             :Define Dataloaders
+        ├── model_zoo               :Commonly used models
+        ├── utils
+        │     ├── misc_utils.py     :System utils
+        │     └── torch_utils.py    :PyTorch utils
+        │
+        ├── checkpoints/<tag>       :Trained checkpoints
+        ├── logs/<tag>              :Logs and TensorBoard event files
+        └── results/<tag>           :Test results
+
+    Usage:
+
+    #### Train
+
+        python3 train.py --tag network_1 --epochs 800 --batch_size 16 --gpu_ids 1
+
+    #### Resume or Fine Tune
+
+        python3 train.py --load checkpoints/network_1 --which-epoch 500
+
+    #### test
+
+        python3 test.py --tag test_1 --dataset RESIDE
+
+    License: MIT
+
+    Last modified 12.24
+"""
 import os
 import time
 
@@ -48,18 +92,23 @@ train_dataset = dual_residual_dataset.ImageSet(data_root, imlist_pth,
                                                transform=transform, is_train=True,
                                                with_aug=False, crop_size=opt.crop, max_size=max_size)
 dataloader = DataLoader(train_dataset, batch_size=opt.batch_size, shuffle=False, num_workers=5)
-"""
-    Val dataset
-"""
+######################
+#    Val dataset
+######################
 val_dataset = dual_residual_dataset.ImageSet(valroot, val_list_pth,
                                              transform=transform)
 val_dataloader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=1)
-"""
-    Real val dataset
-"""
+
+######################
+# Real (val) dataset
+######################
 real_dataloader = get_data_loader_folder(realroot, 1, train=False, num_workers=1, crop=False)
 
-Model = models[opt.model]
+if opt.model in models:
+    Model = models[opt.model]
+else:
+    Model = models['default']
+
 model = Model(opt)
 
 # if len(opt.gpu_ids):
@@ -80,11 +129,21 @@ total_steps = opt.epochs * len(dataloader)
 start = time.time()
 
 writer = create_summary_writer(log_root)
-#scheduler = LR_Scheduler('cos', opt.lr, opt.epochs, len(dataloader), warmup_epochs=10)
+
+scheduler = None
+if opt.lr_schedular is not None:
+    scheduler = LR_Scheduler(opt.lr_schedular, opt.lr, opt.epochs, len(dataloader), warmup_epochs=opt.warmup_epochs)
 
 for epoch in range(start_epoch, opt.epochs):
     for iteration, data in enumerate(dataloader):
         global_step += 1
+
+        ######################
+        #    lr_schedular
+        ######################
+        if opt.lr_schedular is not None:
+            scheduler(model.g_optimizer, iteration, epoch)
+
         rate = (global_step - start_step) / (time.time() - start)
         remaining = (total_steps - global_step) / rate
 
@@ -94,7 +153,7 @@ for epoch in range(start_epoch, opt.epochs):
 
         # Cleaning noisy images
         # cleaned, A, t = model.cleaner(img_var)
-        fine, coarse = model.update_G(img_var, label_var)
+        fine, coarse_1, coarse_2 = model.update_G(img_var, label_var)
 
         # Jt = torch.clamp(cleaned * t, min=.01, max=.99)
         # airlight = torch.clamp(A * (1-t), min=.01, max=.99)
@@ -103,7 +162,9 @@ for epoch in range(start_epoch, opt.epochs):
             write_image(writer, 'train/%d' % iteration, '0_input', tensor2im(img), epoch)
 
             write_image(writer, 'train/%d' % iteration, '1_fine', tensor2im(fine), epoch)
-            write_image(writer, 'train/%d' % iteration, '2_coarse', tensor2im(coarse), epoch)
+            write_image(writer, 'train/%d' % iteration, '2_coarse_1', tensor2im(coarse_1), epoch)
+            write_image(writer, 'train/%d' % iteration, '3_coarse_2', tensor2im(coarse_2), epoch)
+
             write_image(writer, 'train/%d' % iteration, '9_target', tensor2im(label_var), epoch)
 
         # update
@@ -114,7 +175,6 @@ for epoch in range(start_epoch, opt.epochs):
         msg = '(loss) %s ETA: %s' % (str(model.avg_meters), utils.format_time(remaining))
         utils.progress_bar(iteration, len(dataloader), pre_msg, msg)
         # print(pre_msg, msg)
-        #scheduler(model.g_optimizer, iteration, epoch)
         # print('Epoch(' + str(epoch + 1) + '), iteration(' + str(iteration + 1) + '): ' +'%.4f, %.4f' % (-ssim_loss.item(),
         #                                                                                                l1_loss.item()))
 

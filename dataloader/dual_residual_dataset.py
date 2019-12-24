@@ -3,8 +3,12 @@ import numpy as np
 import torch
 import random
 import torch.utils.data as data
+from torchvision.transforms import transforms
 from PIL import Image
 import cv2
+
+from utils.misc_utils import try_make_dir
+from utils.torch_utils import create_summary_writer
 
 
 class ImageSet(data.Dataset):
@@ -78,7 +82,8 @@ class ImageSet(data.Dataset):
 
 
 def RESIDE_loader(dataroot, im_name, is_train):
-    if not is_train:
+    if not is_train:  # 验证集
+        trans = None
         Vars = np.arange(1, 11, 1)
         label_pth = dataroot + 'labels/' + im_name
         label = Image.open(label_pth).convert("RGB")
@@ -131,3 +136,31 @@ def align_to_k(img, k=4):
     a_col = int(img.shape[1] / k) * k
     img = img[0:a_row, 0:a_col]
     return img
+
+
+if __name__ == '__main__':
+    import sys
+    from options import opt
+
+    data_name = 'RESIDE'
+    data_root = '../datasets/' + data_name + '/ITS/'
+    imlist_pth = '../datasets/' + data_name + '/indoor_train_list.txt'
+    valroot = "../datasets/" + data_name + "/SOTS/nyuhaze500/"
+    val_list_pth = '../datasets/' + data_name + '/sots_test_list.txt'
+
+    transform = transforms.ToTensor()
+
+    train_dataset = ImageSet(data_root, imlist_pth, transform=transform, is_train=True,
+                             with_aug=False, crop_size=opt.crop, max_size=999999)
+
+    """
+        Val dataset
+    """
+    val_dataset = ImageSet(valroot, val_list_pth, transform=transform)
+
+    writer = create_summary_writer('../logs/dataset_probe')
+
+    for i in range(10):
+        img, label, _ = train_dataset[i]
+        # write_image(writer, 'train/%d' % iteration, '1_fine', tensor2im(fine), epoch)
+

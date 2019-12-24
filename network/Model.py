@@ -6,11 +6,12 @@ import os
 
 from torch import optim
 
-import network.DuRN_Pure_Conv_3 as pure
+import network.DuRN_Pure_Conv_3_Refactor as pure
 import model_zoo
 # from network.pyramid_ppp import Pyramid_Net
 from network.Ms_Discriminator import MsImageDis
 from network.base_model import BaseModel
+import network.DuRN_Pure_Conv_3_coarse_3 as coarse_3
 from network.metrics import ssim, L1_loss
 from network.weights_init import init_weights
 from utils.torch_utils import ExponentialMovingAverage, print_network
@@ -18,10 +19,9 @@ from utils.torch_utils import ExponentialMovingAverage, print_network
 models = {
     'default': pure.cleaner(),
     'pure': pure.cleaner(),
-    'coarse': None,
+    'coarse': coarse_3.cleaner(),
     'FFA': model_zoo.FFA(),
     'Nested': model_zoo.NestedUNet(),
-    'pix2pix': model_zoo.LocalEnhancer(),
 }
 
 
