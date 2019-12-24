@@ -6,4 +6,5 @@ models = {
     'default': Model,
     'coarse': CoarseModel,
     'coarse_3': CoarseModel_3,
+    'coarse_3_trans': CoarseModel_3
 }

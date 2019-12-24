@@ -90,7 +90,7 @@ if opt.debug:
 
 train_dataset = dual_residual_dataset.ImageSet(data_root, imlist_pth,
                                                transform=transform, is_train=True,
-                                               with_aug=False, crop_size=opt.crop, max_size=max_size)
+                                               with_aug=opt.data_aug, crop_size=opt.crop, max_size=max_size)
 dataloader = DataLoader(train_dataset, batch_size=opt.batch_size, shuffle=False, num_workers=5)
 ######################
 #    Val dataset
@@ -147,13 +147,14 @@ for epoch in range(start_epoch, opt.epochs):
         rate = (global_step - start_step) / (time.time() - start)
         remaining = (total_steps - global_step) / rate
 
-        img, label, _ = data
+        img, label, trans, _ = data
         img_var = Variable(img, requires_grad=False).cuda(device=opt.device)
         label_var = Variable(label, requires_grad=False).cuda(device=opt.device)
+        trans_var = Variable(trans, requires_grad=False).cuda(device=opt.device)
 
         # Cleaning noisy images
         # cleaned, A, t = model.cleaner(img_var)
-        fine, coarse_1, coarse_2 = model.update_G(img_var, label_var)
+        fine, coarse_1, coarse_2 = model.update_G(img_var, label_var, trans_var)
 
         # Jt = torch.clamp(cleaned * t, min=.01, max=.99)
         # airlight = torch.clamp(A * (1-t), min=.01, max=.99)
@@ -165,7 +166,8 @@ for epoch in range(start_epoch, opt.epochs):
             write_image(writer, 'train/%d' % iteration, '2_coarse_1', tensor2im(coarse_1), epoch)
             write_image(writer, 'train/%d' % iteration, '3_coarse_2', tensor2im(coarse_2), epoch)
 
-            write_image(writer, 'train/%d' % iteration, '9_target', tensor2im(label_var), epoch)
+            write_image(writer, 'train/%d' % iteration, '8_target', tensor2im(label_var), epoch)
+            write_image(writer, 'train/%d' % iteration, '9_trans', tensor2im(trans_var), epoch)
 
         # update
 

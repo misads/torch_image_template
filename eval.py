@@ -69,7 +69,7 @@ def evaluate(cleaner, dataloader, epochs, writer, data_name='RESIDE'):
                     hazy_vi = hazy[bi, vi]
                     hazy_vi = hazy_vi.unsqueeze(dim=0)
                     hazy_vi = Variable(hazy_vi, requires_grad=False).cuda(device=opt.device)
-                    res, coarse_1, coarse_2 = cleaner(hazy_vi)
+                    res, coarse_1, coarse_2, coarse_1_trans, coarse_2_trans = cleaner(hazy_vi)
                     res = res.data.cpu().numpy()[0]
                     res[res > 1] = 1
                     res[res < 0] = 0

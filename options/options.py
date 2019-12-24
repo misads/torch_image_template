@@ -25,6 +25,8 @@ def parse_args():
     parser.add_argument('--model', type=str, default='default', help='which model to use')
     parser.add_argument('--norm', type=str, default='instance',
                         help='[instance] normalization or [batch] normalization')
+
+
     parser.add_argument('--init', choices=[None, 'normal', 'xavier', 'kaiming', 'orthogonal'], default=None,
                         help='weights init')
 
@@ -33,6 +35,7 @@ def parse_args():
     parser.add_argument('--resize', type=int, default=None, help='scale images to this size')
     parser.add_argument('--crop', type=int, default=256, help='then crop to this size')
     parser.add_argument('--data-aug', action='store_true', help='Data argument (×8)')
+    parser.add_argument('--data-norm', action='store_true', help='Data Normalization')
 
     # for datasets
     parser.add_argument('--data_root', type=str, default='./datasets/')
