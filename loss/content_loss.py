@@ -45,45 +45,50 @@ class Vgg19(torch.nn.Module):
         self.slice3 = torch.nn.Sequential()
         self.slice4 = torch.nn.Sequential()
         self.slice5 = torch.nn.Sequential()
-        for x in range(2):
+        for x in range(2):  # 1: relu1_1
             self.slice1.add_module(str(x), vgg_pretrained_features[x])
-        for x in range(2, 7):
+        for x in range(2, 7):  # 6: relu2_1
             self.slice2.add_module(str(x), vgg_pretrained_features[x])
-        for x in range(7, 12):
+        for x in range(7, 12):  # 11: relu3_1
             self.slice3.add_module(str(x), vgg_pretrained_features[x])
-        for x in range(12, 21):
+        for x in range(12, 21):  # 20: relu4_2
             self.slice4.add_module(str(x), vgg_pretrained_features[x])
-        for x in range(21, 30):
+        for x in range(21, 30):  # 29: relu5_3
             self.slice5.add_module(str(x), vgg_pretrained_features[x])
         if not requires_grad:
             for param in self.parameters():
                 param.requires_grad = False
 
     def forward(self, X):
-        h_relu1 = self.slice1(X)
-        h_relu2 = self.slice2(h_relu1)
-        h_relu3 = self.slice3(h_relu2)
-        h_relu4 = self.slice4(h_relu3)
-        h_relu5 = self.slice5(h_relu4)
-        out = [h_relu1, h_relu2, h_relu3, h_relu4, h_relu5]
+        h_relu1_1 = self.slice1(X)
+        h_relu2_1 = self.slice2(h_relu1_1)
+        h_relu3_1 = self.slice3(h_relu2_1)
+        h_relu4_2 = self.slice4(h_relu3_1)
+        h_relu5_3 = self.slice5(h_relu4_2)
+        out = [h_relu1_1, h_relu2_1, h_relu3_1, h_relu4_2, h_relu5_3]
         return out
 
 
 class Vgg16(torch.nn.Module):
     def __init__(self, requires_grad=False):
+        """
+            Vgg16：
+                return: relu1_2, relu2_2, relu3_3, relu4_3
+            :param requires_grad:
+        """
         super(Vgg16, self).__init__()
         vgg_pretrained_features = vgg16(pretrained=True).features
         self.slice1 = torch.nn.Sequential()
         self.slice2 = torch.nn.Sequential()
         self.slice3 = torch.nn.Sequential()
         self.slice4 = torch.nn.Sequential()
-        for x in range(4):
+        for x in range(4):  # 3: relu1_2
             self.slice1.add_module(str(x), vgg_pretrained_features[x])
-        for x in range(4, 9):
+        for x in range(4, 9):  # 8: relu2_2
             self.slice2.add_module(str(x), vgg_pretrained_features[x])
-        for x in range(9, 16):
+        for x in range(9, 16):  # 15: relu3_3
             self.slice3.add_module(str(x), vgg_pretrained_features[x])
-        for x in range(16, 23):
+        for x in range(16, 23):  # 22: relu4_3
             self.slice4.add_module(str(x), vgg_pretrained_features[x])
         if not requires_grad:
             for param in self.parameters():

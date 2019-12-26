@@ -38,7 +38,7 @@ class LinkNet50(nn.Module):
         """
         super(LinkNet50, self).__init__()
 
-        base = resnet.resnet50(pretrained=True)
+        base = resnet.resnet50(pretrained=False)
 
         self.in_block = nn.Sequential(
             base.conv1,
@@ -108,7 +108,7 @@ class LinkNet(nn.Module):
         """
         super(LinkNet, self).__init__()
 
-        base = resnet.resnet18(pretrained=True)
+        base = resnet.resnet18(pretrained=False)
 
         self.in_block = nn.Sequential(
             base.conv1,

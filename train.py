@@ -154,7 +154,7 @@ for epoch in range(start_epoch, opt.epochs):
 
         # Cleaning noisy images
         # cleaned, A, t = model.cleaner(img_var)
-        fine, coarse_1, coarse_2 = model.update_G(img_var, label_var, trans_var)
+        fine, coarse_1, coarse_2 = model.update_coarse_1(img_var, label_var, trans_var)
 
         # Jt = torch.clamp(cleaned * t, min=.01, max=.99)
         # airlight = torch.clamp(A * (1-t), min=.01, max=.99)
@@ -189,7 +189,7 @@ for epoch in range(start_epoch, opt.epochs):
 
     if epoch % opt.eval_freq == (opt.eval_freq - 1):
         model.eval()
-        evaluate(model.cleaner, val_dataloader, epoch + 1, writer)
+        # evaluate(model.cleaner, val_dataloader, epoch + 1, writer)
         # evaluate(model.cleaner, real_dataloader, epoch + 1, writer, 'SINGLE')
         model.train()
 

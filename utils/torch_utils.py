@@ -22,6 +22,9 @@ from tensorboardX import SummaryWriter
 ##############################
 #    Functional utils
 ##############################
+from utils.misc_utils import format_num
+
+
 def clamp(x, min=0.01, max=0.99):
     """
         value > max will be set to max
@@ -63,17 +66,22 @@ def tensor2im(x: torch.Tensor, norm=False, dtype='float32'):
     return x.detach().cpu().data[0]
 
 
-
 ##############################
 #    Network utils
 ##############################
-def print_network(net: nn.Module):
+def print_network(net: nn.Module, print_size=False):
     num_params = 0
-    for param in net.parameters():
-        num_params += param.numel()
     print(net)
-    print('Total number of parameters: %d' % num_params)
-    print('The size of receptive field: %d' % receptive_field(net))
+    for name, param in net.named_parameters():
+        num_params += param.numel()
+        size = list(param.size())
+        if len(size) > 1:
+            if print_size:
+                print(name, size[1:2]+size[:1]+size[2:], format_num(param.numel()))
+            else:
+                print(name, size[1:2] + size[:1] + size[2:])
+    print('Total number of parameters: %s' % format_num(num_params))
+    print('The size of receptive field: %s' % format_num(receptive_field(net)))
 
 
 def receptive_field(net):

@@ -169,6 +169,26 @@ def get_file_paths_by_pattern(folder, pattern='*'):
     return paths
 
 
+def format_num(num) -> str:
+    """
+        Examples:
+            format_num(10000) -> 10,000
+            format_num(123456789) -> 123,456,789
+
+        :param num:
+        :return:
+    """
+    num = str(num)
+    ans = ''
+    for i in range(len(num)-3, -4, -3):
+        if i < 0:
+            ans = num[0:i+3] + ans
+        else:
+            ans = ',' + num[i:i+3] + ans
+
+    return ans.lstrip(',')
+
+
 def format_time(seconds):
     """
         Examples:

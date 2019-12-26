@@ -26,7 +26,6 @@ def parse_args():
     parser.add_argument('--norm', type=str, default='instance',
                         help='[instance] normalization or [batch] normalization')
 
-
     parser.add_argument('--init', choices=[None, 'normal', 'xavier', 'kaiming', 'orthogonal'], default=None,
                         help='weights init')
 
@@ -56,6 +55,11 @@ def parse_args():
     parser.add_argument('--save_freq', type=int, default=10, help='freq to save models')
     parser.add_argument('--eval_freq', '--val_freq', type=int, default=25, help='freq to eval models')
     parser.add_argument('--log_freq', type=int, default=1, help='freq to vis in tensorboard')
+
+    # ex
+    parser.add_argument('--load_coarse_2', type=str, default=None, help='load checkpoint')
+    parser.add_argument('--load_coarse_1', type=str, default=None, help='load checkpoint')
+    parser.add_argument('--load_fine', type=str, default=None, help='load checkpoint')
 
     return parser.parse_args()
 

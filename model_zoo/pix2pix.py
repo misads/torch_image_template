@@ -5,14 +5,14 @@ import torch.nn as nn
 # Generator
 ##############################################################################
 class LocalEnhancer(nn.Module):
-    def __init__(self, input_nc, output_nc, ngf=32, n_downsample_global=3, n_blocks_global=9,
+    def __init__(self, in_channel=3, out_channel=3, ngf=32, n_downsample_global=3, n_blocks_global=9,
                  n_local_enhancers=1, n_blocks_local=3, norm_layer=nn.BatchNorm2d, padding_type='reflect'):
         super(LocalEnhancer, self).__init__()
         self.n_local_enhancers = n_local_enhancers
 
         ###### global generator model #####
         ngf_global = ngf * (2 ** n_local_enhancers)
-        model_global = GlobalGenerator(input_nc, output_nc, ngf_global, n_downsample_global, n_blocks_global,
+        model_global = GlobalGenerator(in_channel, out_channel, ngf_global, n_downsample_global, n_blocks_global,
                                        norm_layer).model
         model_global = [model_global[i] for i in
                         range(len(model_global) - 3)]  # get rid of final convolution layers
@@ -22,7 +22,7 @@ class LocalEnhancer(nn.Module):
         for n in range(1, n_local_enhancers + 1):
             ### downsample
             ngf_global = ngf * (2 ** (n_local_enhancers - n))
-            model_downsample = [nn.ReflectionPad2d(3), nn.Conv2d(input_nc, ngf_global, kernel_size=7, padding=0),
+            model_downsample = [nn.ReflectionPad2d(3), nn.Conv2d(in_channel, ngf_global, kernel_size=7, padding=0),
                                 norm_layer(ngf_global), nn.ReLU(True),
                                 nn.Conv2d(ngf_global, ngf_global * 2, kernel_size=3, stride=2, padding=1),
                                 norm_layer(ngf_global * 2), nn.ReLU(True)]
@@ -38,7 +38,7 @@ class LocalEnhancer(nn.Module):
 
             ### final convolution
             if n == n_local_enhancers:
-                model_upsample += [nn.ReflectionPad2d(3), nn.Conv2d(ngf, output_nc, kernel_size=7, padding=0),
+                model_upsample += [nn.ReflectionPad2d(3), nn.Conv2d(ngf, out_channel, kernel_size=7, padding=0),
                                    nn.Tanh()]
 
             setattr(self, 'model' + str(n) + '_1', nn.Sequential(*model_downsample))
