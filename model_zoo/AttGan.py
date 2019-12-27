@@ -181,6 +181,7 @@ class Generator(nn.Module):
             h = o * F.tanh(c)
             mask = self.det_conv_mask(h)
             mask_list.append(mask)
+
         x = torch.cat((input, mask), 1)
         x = self.conv1(x)
         res1 = x

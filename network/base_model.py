@@ -6,9 +6,9 @@ from utils.misc_utils import color_print
 
 
 class BaseModel(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, opt):
         super(BaseModel, self).__init__()
-
+        self.opt = opt
 
 
     # def initialize(self, opt):
@@ -62,10 +62,10 @@ class BaseModel(torch.nn.Module):
         else:
             # network.load_state_dict(torch.load(save_path))
             try:
-                network.load_state_dict(torch.load(save_path))
+                network.load_state_dict(torch.load(save_path, map_location=self.opt.device))
                 color_print('Load checkpoint from %s.' % save_path, 3)
             except:
-                pretrained_dict = torch.load(save_path)
+                pretrained_dict = torch.load(save_path, map_location=self.opt.device)
                 model_dict = network.state_dict()
                 try:
                     pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}

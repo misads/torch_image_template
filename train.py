@@ -54,7 +54,7 @@ from dataloader import dual_residual_dataset
 from dataloader.image_folder import get_data_loader_folder
 from eval import evaluate
 from network import models
-
+import pdb
 from options import opt, logger
 from utils.torch_utils import create_summary_writer, write_image, write_meters_loss, LR_Scheduler, tensor2im
 import utils.misc_utils as utils
@@ -136,6 +136,7 @@ if opt.lr_schedular is not None:
 
 for epoch in range(start_epoch, opt.epochs):
     for iteration, data in enumerate(dataloader):
+        break
         global_step += 1
 
         ######################
@@ -154,7 +155,7 @@ for epoch in range(start_epoch, opt.epochs):
 
         # Cleaning noisy images
         # cleaned, A, t = model.cleaner(img_var)
-        fine, coarse_1, coarse_2 = model.update_coarse_1(img_var, label_var, trans_var)
+        fine, coarse_1, coarse_2, trans_1, trans_2 = model.update_G(img_var, label_var, trans_var)
 
         # Jt = torch.clamp(cleaned * t, min=.01, max=.99)
         # airlight = torch.clamp(A * (1-t), min=.01, max=.99)
@@ -165,6 +166,9 @@ for epoch in range(start_epoch, opt.epochs):
             write_image(writer, 'train/%d' % iteration, '1_fine', tensor2im(fine), epoch)
             write_image(writer, 'train/%d' % iteration, '2_coarse_1', tensor2im(coarse_1), epoch)
             write_image(writer, 'train/%d' % iteration, '3_coarse_2', tensor2im(coarse_2), epoch)
+            # write_image(writer, 'train/%d' % iteration, '4_trans_1', tensor2im(coarse_2), epoch)
+            # write_image(writer, 'train/%d' % iteration, '5_trans_2', tensor2im(coarse_2), epoch)
+
 
             write_image(writer, 'train/%d' % iteration, '8_target', tensor2im(label_var), epoch)
             write_image(writer, 'train/%d' % iteration, '9_trans', tensor2im(trans_var), epoch)
@@ -190,8 +194,10 @@ for epoch in range(start_epoch, opt.epochs):
     if epoch % opt.eval_freq == (opt.eval_freq - 1):
         model.eval()
         # evaluate(model.cleaner, val_dataloader, epoch + 1, writer)
-        # evaluate(model.cleaner, real_dataloader, epoch + 1, writer, 'SINGLE')
+        evaluate(model.cleaner, real_dataloader, epoch + 1, writer, 'SINGLE')
         model.train()
+
+    pdb.set_trace()
 
 
     # if epoch in [700, 1400]:

@@ -6,28 +6,33 @@ import os
 
 from torch import optim
 
-import network.DuRN_Pure_Conv_3_Refactor as pure
-import model_zoo
+import torch.nn.functional as F
+#import network.DuRN_Pure_Conv_3_fg_dual as pure
+import network.Cascaded_Refinement as pure
+from options import opt
+from torch_template.model_zoo import model_zoo
 # from network.pyramid_ppp import Pyramid_Net
-from network.Ms_Discriminator import MsImageDis
-from network.base_model import BaseModel
-import network.DuRN_Pure_Conv_3_coarse_3 as coarse_3
-from network.metrics import ssim, L1_loss
-from network.weights_init import init_weights
-from utils.torch_utils import ExponentialMovingAverage, print_network
+from torch_template.network.base_model import BaseModel
+# import network.DuRN_Pure_Conv_3_coarse_3 as coarse_3
+from torch_template.network.metrics import ssim, L1_loss
+from torch_template.network.weights_init import init_weights
+from torch_template.utils.torch_utils import ExponentialMovingAverage, print_network
+from torch_template.loss import VGG16Loss
+
+
+vgg16loss = VGG16Loss(opt.device)
 
 models = {
     'default': pure.cleaner(),
     'pure': pure.cleaner(),
-    'coarse': coarse_3.cleaner(),
-    'FFA': model_zoo.FFA(),
-    'Nested': model_zoo.NestedUNet(),
+    'FFA': model_zoo['FFA'],
+    'Nested': model_zoo['NestedUNet'],
 }
 
 
 class Model(BaseModel):
     def __init__(self, opt):
-        super(Model, self).__init__(opt)
+        super(Model, self).__init__()
 
         # self.cleaner = Pyramid_Net(3, 256).cuda(device=opt.device)
         self.cleaner = models[opt.model].cuda(device=opt.device)
@@ -67,26 +72,36 @@ class Model(BaseModel):
 
         # L1 & SSIM loss
         some_loss = 0
-        cleaned = self.cleaner(x)
+        y_downsample_1 = F.interpolate(y, scale_factor=0.5,  mode='bilinear', align_corners=True)
+        y_downsample_2 = F.interpolate(y, scale_factor=0.25, mode='bilinear', align_corners=True)
+
+        cleaned, R_, feature1, feature2 = self.cleaner(x)  # feature1 is 64, feature2 is 128
+        re_construct = cleaned + R_
+
         ssim_loss_r = -ssim(cleaned, y)
-        ssim_loss = ssim_loss_r * 1.1
 
-        # Compute L1 loss (not used)
+        percpetual_loss = vgg16loss(cleaned, y) + \
+                          vgg16loss(feature1, y_downsample_2) * 0.5 + \
+                          vgg16loss(feature2, y_downsample_1) * 0.3
+
+
         l1_loss = L1_loss(cleaned, y)
-        l1_loss = l1_loss * 0.75
 
-        loss = ssim_loss + l1_loss
+        re_construct_loss = L1_loss(re_construct, x)
+
+        loss = ssim_loss_r * 1.1 + l1_loss * 0.75 + re_construct_loss * 0.75 + percpetual_loss * 0.5
 
         # GAN loss
         # loss_gen_adv = self.discriminitor.calc_gen_loss(input_fake=cleaned)
-        self.avg_meters.update({'ssim': -ssim_loss_r.item(), 'L1': l1_loss.item()})
+        self.avg_meters.update({'ssim': -ssim_loss_r.item(), 'L1': l1_loss.item(), 'reconstruct': re_construct_loss.item(),
+                                'percpetual_loss': percpetual_loss.item()})
 
         #loss_gen = loss + loss_gen_adv * 1.
         self.g_optimizer.zero_grad()
         loss.backward()
         self.g_optimizer.step()
 
-        return cleaned
+        return cleaned, re_construct
 
     def update_D(self, x, y):
         self.d_optimizer.zero_grad()

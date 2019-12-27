@@ -107,7 +107,7 @@ def evaluate(cleaner, dataloader, epochs, writer, data_name='RESIDE'):
             hazy = data
             hazy = Variable(hazy, requires_grad=False).cuda(device=opt.device)
             utils.progress_bar(i, len(dataloader), 'Eva... ')
-            res, A, t = cleaner(hazy)
+            res, _, _, _, _ = cleaner(hazy)
             res = res.data.cpu().numpy()[0]
             res[res > 1] = 1
             res[res < 0] = 0

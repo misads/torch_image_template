@@ -58,6 +58,7 @@ class ImageSet(data.Dataset):
         else:
             return im_input, label, im_name
 
+
     # Read a image name list.
     def flist_reader(self, flist):
         imlist = []
