@@ -16,15 +16,15 @@ from torch.autograd import Variable
 from options import opt
 
 #  Refinement iterations
-iters = 4   # Refinement iterations
+iters = 6   # Refinement iterations
 ####################################
 
 class cleaner(nn.Module):
     def __init__(self):
         super(cleaner, self).__init__()
-        for i in range(iters):
-            self.add_module('G_T_%d' % (i + 1), G_Module(in_channels=9))
-            self.add_module('G_R_%d' % (i + 1), G_Module(in_channels=9))
+
+        self.add_module('G_T', G_Module(in_channels=9))
+        self.add_module('G_R', G_Module(in_channels=9))
 
         self.conv_feature1 = nn.Conv2d(128, 3, kernel_size=3, stride=2, padding=1)
         self.conv_feature2 = nn.Conv2d(64, 3, kernel_size=3, stride=2, padding=1)
@@ -42,8 +42,8 @@ class cleaner(nn.Module):
         h2 = Variable(torch.zeros(batch_size, 256, h, w)).cuda(device=opt.device)
 
         for i in range(iters):
-            T_, c1, h1, feature1, feature2 = self._modules['G_T_%d' % (i + 1)](x, c1, h1)
-            R_, c2, h2, _, _ = self._modules['G_R_%d' % (i + 1)](x, c2, h2)
+            T_, c1, h1, feature1, feature2 = self._modules['G_T'](x, c1, h1)
+            R_, c2, h2, _, _ = self._modules['G_R'](x, c2, h2)
             x = torch.cat((T_, I, R_), 1)
 
         feature1 = self.conv_feature1(feature1)
