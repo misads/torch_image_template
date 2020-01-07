@@ -1,5 +1,5 @@
 # torch_image_template is deprecated
-　　A new version of python package is available at PyPi [[torch-template](https://pypi.org/project/torch-template/)] and [[GitHub](https://github.com/misads/torch_template)]. Now you can install the repo by simply typing:
+　　A new version of python package has been made available at [[PyPi](https://pypi.org/project/torch-template/)](torch-template) and [[GitHub](https://github.com/misads/torch_template)]. Now you can install the repo by simply typing:
 ```bash
 pip install torch-template
 ```
