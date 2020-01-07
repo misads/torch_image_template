@@ -1,5 +1,5 @@
-# torch_image_template
-A template for pytorch image handling project.
+# torch_image_template is deprecated
+A new version of python package 'torch_template' is available now at [[PyPi](https://pypi.org/project/torch-template/)] and [[GitHub](https://github.com/misads/torch_template)].
 
 ### File structure
 
